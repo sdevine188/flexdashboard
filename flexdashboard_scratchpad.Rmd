@@ -1,0 +1,112 @@
+---
+title: "Test 2"
+output: 
+        flexdashboard::flex_dashboard:
+                vertical_layout: fill          
+                orientation: rows
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(DT)
+library(crosstalk)
+library(plotly)
+
+# setwd("C:/Users/Stephen/Desktop/R/flextable")
+
+# to host flexdashboard on gh pages, create a repo like normal where the flexdashboard html is saved
+# run the following commands:
+# git init
+# git add my_flexdashboard.html (shouldn't be a need to specifically label it index.html)
+# git commit -m "updated blah blah"
+# git push origin master
+# git push origin master:gh-pages
+# then go to http://drastudio.github.io/url-generator to get the full url (just a helper), like below
+# https://sdevine188.github.io/flexdashboard_on_github_test/index
+
+# to push updates, just save updates to my_flexdashboard.html
+# git add my_flexdashboard.html
+# git commit -m "updated"
+# git push origin master
+# then git add my_flexdashboard.html
+# git commit -m "updated"
+# git push origin master:gh-pages
+# i'm not 100% sure anymore if the repetitive "git add/commit" stuff is necessary, but it works
+# note it may take a minute or two to update and go live
+
+# create starwars_subset
+starwars_subset <- starwars %>% select(name, homeworld, sex, height, mass, skin_color, eye_color, species)
+
+# create crosstalk sharedData
+starwars_ct <- starwars %>% select(name, homeworld, sex, height, mass, skin_color, eye_color, species) %>% 
+         SharedData$new(key = ~name)
+
+```
+
+Row {data-height=400}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+# starwars %>% ggplot(data = ., mapping = aes(x = height, y = mass)) + geom_point()
+
+# create interactive ggplotly chart
+starwars_ggplot <- starwars_ct %>% ggplot(data = ., mapping = aes(x = height, y = mass)) + geom_point()
+starwars_ggplot %>% ggplotly()
+```
+> notes under chart
+
+
+### Chart B
+
+```{r}
+starwars %>% count(homeworld) %>% 
+        ggplot(data = ., mapping = aes(x = fct_reorder(.f = factor(homeworld), .x = n, .desc = TRUE), y = n)) +                 geom_col()
+```
+
+Row {data-height=600}
+-----------------------------------------------------------------------
+
+### Chart C
+
+```{r}
+# create datatable
+
+# note the non-crosstalk version works with lots of extra formatting,
+# but the crosstalk datatable w/ formatting chokes R for some reason; 
+# the basic cross datatable without formatting works though
+# starwars_subset %>%
+#         datatable(filter = "top",
+#                           options = list(pageLength = 5, autoWidth = TRUE,
+#                                          columnDefs = list(list(targets = 8, visible = FALSE)))) %>%
+#         formatStyle(table = ., columns = 1:8, target = "row", lineHeight = "30%") %>%
+#         formatStyle(table = ., columns = 1, target = "cell", color = "",
+#                     backgroundColor = "#00cc66", fontWeight = "bold",
+#                     fontSize = "6px") %>%
+#         formatStyle(table = ., columns = c("homeworld", "mass"), target = "cell", color = "",
+#                     backgroundColor = "#ff9900", fontWeight = "italic",
+#                     fontSize = "15px") %>%
+#         formatStyle(table = ., columns = "sex", valueColumns = "species", target = "cell",
+#                     backgroundColor = styleEqual(levels = c("Human", "Droid"), values = c("#00ccff", "#cccc00"))) %>%
+#         identity()
+
+# create crosstalk datatable
+# note that extra formatting in crosstalk datatable will choke R, despite working for non-crosstalk datatable??
+starwars_ct %>%
+        datatable(filter = "top",
+                          options = list(pageLength = 5, autoWidth = TRUE,
+                                         columnDefs = list(list(targets = 8, visible = FALSE)))) %>%
+        # formatStyle(table = ., columns = 1:8, target = "row", lineHeight = "30%") %>%
+        # formatStyle(table = ., columns = 1, target = "cell", color = "",
+        #             backgroundColor = "#00cc66", fontWeight = "bold",
+        #             fontSize = "6px") %>%
+        # formatStyle(table = ., columns = c("homeworld", "mass"), target = "cell", color = "",
+        #             backgroundColor = "#ff9900", fontWeight = "italic",
+        #             fontSize = "15px") %>%
+        # formatStyle(table = ., columns = "sex", valueColumns = "species", target = "cell",
+        #             backgroundColor = styleEqual(levels = c("Human", "Droid"), values = c("#00ccff", "#cccc00"))) %>%
+        identity()
+```
+
